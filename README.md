@@ -17,7 +17,6 @@ This describes how to add tools for local usage.
  3. Add the following environment variables for use by git tools.
 
         # Required
-        export GIT_TOOLS_USER="mgoodnow"
         export GIT_TOOLS_TOKEN="ghp_mytoken"
     
         # Optional

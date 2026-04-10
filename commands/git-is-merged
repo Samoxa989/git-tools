@@ -3,7 +3,6 @@
 # Determine if a given branch has a closed and merged PR
 #
 # Required environment variables:
-#   GIT_TOOLS_USER      - required
 #   GIT_TOOLS_TOKEN     - required - see: https://github.com/settings/tokens
 #   GIT_TOOLS_ORG       - optional - if used will limit search scope
 #   GIT_TOOLS_HOSTNAME  - optional (defaults to github.com)
@@ -18,6 +17,7 @@
 import os
 import sys
 from github import Github
+from github import Auth
 import argparse
 import subprocess
 # from pprint import pprint
@@ -41,14 +41,13 @@ def parse_args():
 def main():
     args = parse_args()
 
-    git_username = os.getenv('GIT_TOOLS_USER')
     git_token = os.getenv('GIT_TOOLS_TOKEN')
     git_hostname = os.getenv('GIT_TOOLS_HOSTNAME')
     git_org = os.getenv('GIT_TOOLS_ORG')
 
     # Validate required environment variables
-    if not git_username or not git_token:
-        print('Required environment variables not set: GIT_TOOLS_USER and GIT_TOOLS_TOKEN')
+    if not git_token:
+        print('Required environment variable not set: GIT_TOOLS_TOKEN')
         exit(9)
 
     if not git_hostname:
@@ -58,9 +57,9 @@ def main():
     ref = subprocess.check_output(['git', 'rev-parse', args.branch]).strip()
     ref = ref.decode('utf-8')
 
+    auth = Auth.Token(git_token)
     github = Github(base_url='https://' + git_hostname + '/api/v3',
-                    login_or_token=git_username,
-                    password=git_token)
+                    auth=auth)
 
     if git_org:
         query = 'q=type:pr org:{} {}'.format(git_org, ref)
@@ -73,7 +72,7 @@ def main():
     pr_search_response = github.search_issues(query)
 
     # Enable for debugging
-    # for pr in pull_requests:
+    # for pr in pr_search_response:
     #     pprint(vars(pr))
 
     # Get boolean list if PR is closed and merged
